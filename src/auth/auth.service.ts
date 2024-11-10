@@ -8,29 +8,29 @@ import { ValidatedLoginDto } from './dtos/validated-login.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private usersService: UsersService,
-        private jwtService: JwtService,
-    ) { }
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-    async validateUser(object: LoginDto): Promise<ValidUserDto> {
-        const { email, password } = object;
-        const user = await this.usersService.findOneByEmail(email);
+  async validateUser(object: LoginDto): Promise<ValidUserDto> {
+    const { email, password } = object;
+    const user = await this.usersService.findOneByEmail(email);
 
-        if (user && await bcrypt.compare(password, user.password)) {
-            const { password, ...result } = user;
-            return result;
-        }
-
-        return null;
+    if (user && (await bcrypt.compare(password, user.password))) {
+      delete user.password;
+      return user;
     }
 
-    async login(user: ValidUserDto): Promise<ValidatedLoginDto> {
-        const payload = { email: user.email, sub: user.id };
+    return null;
+  }
 
-        return {
-            message: 'Login realizado com sucesso!',
-            accessToken: this.jwtService.sign(payload)
-        };
-    }
+  async login(user: ValidUserDto): Promise<ValidatedLoginDto> {
+    const payload = { email: user.email, sub: user.id };
+
+    return {
+      message: 'Login realizado com sucesso!',
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
 }

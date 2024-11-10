@@ -20,9 +20,6 @@ export class DynamicException {
         // Extrai os detalhes da exceção
         const { message, status, errorType } = this.getErrorDetails();
 
-        // Registra a exceção no log com detalhes completos
-        this.logException(errorId, message, status, errorType);
-
         // Lança a exceção com mensagem formatada
         throw new HttpException(
             {
@@ -41,9 +38,11 @@ export class DynamicException {
             // Se for uma exceção HTTP já existente
             const status = this.error.getStatus();
             const response = this.error.getResponse() as any;
+            const message = this.mountMessageError(response.message || this.error.message);
+
             return {
-                message: response.message || this.error.message,
                 status,
+                message,
                 errorType: response.error || this.error.name,
             };
 
@@ -73,18 +72,6 @@ export class DynamicException {
         }
     }
 
-    // Método para logar a exceção com detalhes
-    private logException(errorId: string, message: string, status: number, errorType: string) {
-        this.logger.error({
-            errorId,
-            message,
-            status,
-            errorType,
-            context: this.context,
-            timestamp: new Date().toISOString(),
-        });
-    }
-
     // Suporte para internacionalização (i18n) de mensagens
     private getLocalizedMessage(message: string): string {
         const messages = {
@@ -98,5 +85,17 @@ export class DynamicException {
             },
         };
         return messages[this.locale][message] || message;
+    }
+
+    private mountMessageError(messages: Array<string> | string): string {
+        let message = '';
+
+        if (messages.length) {
+            message = [...messages].join(', ');
+        } else {
+            message = messages.toString();
+        }
+
+        return message;
     }
 }

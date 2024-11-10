@@ -13,19 +13,19 @@ export class AllExceptionFilter implements ExceptionFilter {
 
         // Chama o DynamicException para lidar com o erro
         try {
-            const dynamicException = new DynamicException(exception, 'Request Handling', 'pt'); // Passando 'pt' para português
-
             // O dynamicException lança o erro formatado e registrado
+            new DynamicException(exception, 'Request Handling', 'pt'); // Passando 'pt' para português
+
         } catch (error) {
             // No caso de algum erro interno no processamento da exceção
-            const status = HttpStatus.INTERNAL_SERVER_ERROR;
-            const message = 'Ocorreu um erro inesperado ao lidar com a exceção';
+            const status = error.status ?? HttpStatus.INTERNAL_SERVER_ERROR;
+            const message = error.message ?? 'Ocorreu um erro inesperado ao lidar com a exceção';
 
             this.logger.error({
-                message,
                 status,
-                timestamp: new Date().toISOString(),
+                message,
                 path: request.url,
+                timestamp: new Date().toISOString(),
             });
 
             response.status(status).json({
